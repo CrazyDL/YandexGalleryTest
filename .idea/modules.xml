@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Yandex.iml" filepath="$PROJECT_DIR$/Yandex.iml" />
+      <module fileurl="file://$PROJECT_DIR$/YandexGalleryTest.iml" filepath="$PROJECT_DIR$/YandexGalleryTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/disk-restapi-sdk/disk-restapi-sdk.iml" filepath="$PROJECT_DIR$/disk-restapi-sdk/disk-restapi-sdk.iml" />
     </modules>
   </component>
 </project>

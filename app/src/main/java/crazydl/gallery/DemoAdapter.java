@@ -1,5 +1,7 @@
 package crazydl.gallery;
 
+import android.annotation.SuppressLint;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -16,8 +18,10 @@ import java.util.List;
 public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.ViewHolder> {
     private final ArrayList<DemoItem> items;
     private ArrayList<Integer> itemsPositions;
+    private PictureDownloader pictureDownloader;
 
-    DemoAdapter( ArrayList<DemoItem> items) {
+    @SuppressLint("StaticFieldLeak")
+    DemoAdapter(ArrayList<DemoItem> items) {
         this.items = new ArrayList<>(items);
         itemsPositions = new ArrayList<>();
         int itemsSize = items.size();
@@ -43,6 +47,15 @@ public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.ViewHolder> {
             }
             itemsPositions.add(i);
         }
+        pictureDownloader = new PictureDownloader();
+        new AsyncTask<Void, Void, Void>(){
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                pictureDownloader.GetPublicRes("https://yadi.sk/d/pz7-XL9k3UY724");
+                return null;
+            }
+        }.execute();
     }
 
     @Override
