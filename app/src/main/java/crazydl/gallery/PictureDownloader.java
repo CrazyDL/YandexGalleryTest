@@ -1,5 +1,9 @@
 package crazydl.gallery;
 
+import android.util.Log;
+import android.widget.TabHost;
+import android.widget.Toast;
+
 import com.yandex.disk.rest.Credentials;
 import com.yandex.disk.rest.ResourcesArgs;
 import com.yandex.disk.rest.RestClient;
@@ -25,10 +29,18 @@ public class PictureDownloader {
                 .setSort(ResourcesArgs.Sort.created);
         try {
             Resource resource = restClient.listPublicResources(resBuilder.build());
+            Log.d(TAG, resource.toString());
+
         } catch (IOException e) {
+            Log.d(TAG, "IOException");
             e.printStackTrace();
         } catch (ServerIOException e) {
+            Log.d(TAG, "ServerIOException");
             e.printStackTrace();
         }
+    }
+
+    public void UpdatePicturesData(String publicKey){
+        GetPublicRes(publicKey);
     }
 }

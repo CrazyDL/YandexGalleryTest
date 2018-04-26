@@ -1,21 +1,38 @@
 package crazydl.gallery;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
+    private final int PERMISSION_REQUEST_INTERNET_CODE = 0;
+
     private RecyclerView recyclerView;
     private DemoAdapter demoAdapter;
+    private SwipeRefreshLayout swipeRefreshLayout;
+
+    private PictureDownloader pictureDownloader;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_layout);
+
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout.setOnRefreshListener(this);
 
         recyclerView = findViewById(R.id.image_gallery);
         recyclerView.setHasFixedSize(true);
@@ -24,8 +41,9 @@ public class MainActivity extends AppCompatActivity {
 
         demoAdapter = new DemoAdapter(createDemoItems());
         recyclerView.setAdapter(demoAdapter);
+        pictureDownloader = new PictureDownloader();
 
-
+        RefreshItems();
     }
 
     @NonNull
@@ -47,5 +65,53 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return demoItems;
+    }
+
+    private boolean haveInternetPermission() {
+        return ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestInternetPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},
+                PERMISSION_REQUEST_INTERNET_CODE);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode){
+            case PERMISSION_REQUEST_INTERNET_CODE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    RefreshItems();
+                }
+        }
+    }
+    @SuppressLint("StaticFieldLeak")
+    private void RefreshItems(){
+
+        swipeRefreshLayout.setRefreshing(true);
+        new AsyncTask<Void, Void, Void>(){
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                pictureDownloader.UpdatePicturesData("https://yadi.sk/d/pz7-XL9k3UY724");
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        }.execute();
+
+    }
+
+    @Override
+    public void onRefresh() {
+        if (haveInternetPermission()) {
+            RefreshItems();
+        } else {
+            requestInternetPermission();
+        }
     }
 }
