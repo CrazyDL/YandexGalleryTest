@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     private DemoAdapter demoAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
 
-    private PictureDownloader pictureDownloader;
+    private PictureListParser pictureListParser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         demoAdapter = new DemoAdapter(createDemoItems());
         recyclerView.setAdapter(demoAdapter);
-        pictureDownloader = new PictureDownloader();
+        pictureListParser = new PictureListParser();
 
         RefreshItems();
     }
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
             @Override
             protected Void doInBackground(Void... voids) {
-                pictureDownloader.UpdatePicturesData("https://yadi.sk/d/pz7-XL9k3UY724");
+                pictureListParser.UpdatePicturesData("https://yadi.sk/d/pz7-XL9k3UY724");
                 return null;
             }
 
