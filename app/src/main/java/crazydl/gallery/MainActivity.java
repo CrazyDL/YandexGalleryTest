@@ -3,6 +3,7 @@ package crazydl.gallery;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -14,6 +15,8 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.Toast;
 
+import com.yandex.disk.rest.json.Resource;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,27 +25,24 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     private RecyclerView recyclerView;
     private DemoAdapter demoAdapter;
-    private SwipeRefreshLayout swipeRefreshLayout;
-
-    private PictureListParser pictureListParser;
+    private ImageDownloader imageDownloader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_layout);
 
-        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+        SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(this);
 
         recyclerView = findViewById(R.id.image_gallery);
         recyclerView.setHasFixedSize(true);
-
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
         demoAdapter = new DemoAdapter(createDemoItems());
         recyclerView.setAdapter(demoAdapter);
-        pictureListParser = new PictureListParser();
 
+        imageDownloader = new ImageDownloader(swipeRefreshLayout);
         RefreshItems();
     }
 
@@ -86,25 +86,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                 }
         }
     }
-    @SuppressLint("StaticFieldLeak")
-    private void RefreshItems(){
-
-        swipeRefreshLayout.setRefreshing(true);
-        new AsyncTask<Void, Void, Void>(){
-
-            @Override
-            protected Void doInBackground(Void... voids) {
-                pictureListParser.UpdatePicturesData("https://yadi.sk/d/pz7-XL9k3UY724");
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                swipeRefreshLayout.setRefreshing(false);
-            }
-        }.execute();
-
-    }
 
     @Override
     public void onRefresh() {
@@ -114,4 +95,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             requestInternetPermission();
         }
     }
+    
+    private void RefreshItems(){
+        imageDownloader.execute();
+    }
+
 }
