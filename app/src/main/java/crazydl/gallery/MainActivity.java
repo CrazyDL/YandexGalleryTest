@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import com.yandex.disk.rest.json.Resource;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,6 +98,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
     private void RefreshItems(){
-        new ImageDownloader(swipeRefreshLayout).execute();
+        new ImageDownloader(getApplicationContext(), swipeRefreshLayout).execute();
     }
 }
