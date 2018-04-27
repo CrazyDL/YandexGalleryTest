@@ -13,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.yandex.disk.rest.json.Resource;
@@ -25,14 +26,14 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     private RecyclerView recyclerView;
     private DemoAdapter demoAdapter;
-    private ImageDownloader imageDownloader;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_layout);
 
-        SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(this);
 
         recyclerView = findViewById(R.id.image_gallery);
@@ -42,8 +43,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         demoAdapter = new DemoAdapter(createDemoItems());
         recyclerView.setAdapter(demoAdapter);
 
-        imageDownloader = new ImageDownloader(swipeRefreshLayout);
-        RefreshItems();
+        //RefreshItems();
     }
 
     @NonNull
@@ -68,12 +68,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
     private boolean haveInternetPermission() {
-        return ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA)
+        return ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.INTERNET)
                 == PackageManager.PERMISSION_GRANTED;
     }
 
     private void requestInternetPermission() {
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET},
                 PERMISSION_REQUEST_INTERNET_CODE);
     }
 
@@ -95,9 +95,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             requestInternetPermission();
         }
     }
-    
-    private void RefreshItems(){
-        imageDownloader.execute();
-    }
 
+    private void RefreshItems(){
+        new ImageDownloader(swipeRefreshLayout).execute();
+    }
 }
