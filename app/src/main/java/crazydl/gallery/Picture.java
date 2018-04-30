@@ -2,22 +2,36 @@ package crazydl.gallery;
 
 
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;
+import android.graphics.Bitmap;
+import android.support.annotation.NonNull;
 
+@Entity
 public class Picture {
-    private final String date;
-    private final Integer imageId;
+    @PrimaryKey
+    @NonNull
+    private String fileName;
+    @NonNull
+    private String date;
 
-    Picture(String date, Integer imageId) {
+    Picture(@NonNull String fileName, @NonNull String date) {
+        this.fileName = fileName;
         this.date = date;
-        this.imageId = imageId;
     }
 
-    String getDate() {
+    public void setFileName(@NonNull String fileName) {
+        this.fileName = fileName;
+    }
+
+    public void setDate(@NonNull String date) {
+        this.date = date;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public String getDate() {
         return date;
     }
-
-    public Integer getImageId() {
-        return imageId;
-    }
-
 }

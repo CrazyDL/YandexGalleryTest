@@ -17,11 +17,11 @@ public class PictureListParser {
     private final int DOWNLOAD_LIMIT = 20;
 
     private RestClient restClient;
-    private ArrayList<Resource> pictureItems;
+    private ArrayList<Resource> resources;
 
     public PictureListParser() {
-        restClient =  Utils.getRestClientInstance();
-        pictureItems = new ArrayList<>();
+        restClient =  App.getInstance().getRestClient();
+        resources = new ArrayList<>();
     }
 
     public void GetPublicRes(String publicUrl, int offset){
@@ -63,13 +63,13 @@ public class PictureListParser {
             }
         }
         else if (resource.getMediaType().equals("image")){
-            pictureItems.add(resource);
+            resources.add(resource);
         }
     }
 
     public ArrayList<Resource> UpdatePicturesData(String publicKey){
-        pictureItems.clear();
+        resources.clear();
         GetPublicRes(publicKey, 0);
-        return pictureItems;
+        return resources;
     }
 }

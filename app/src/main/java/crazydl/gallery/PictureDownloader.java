@@ -12,12 +12,15 @@ import com.yandex.disk.rest.json.Resource;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
-public class PictureDownloader extends AsyncTask<Void, List<Resource>, Void> {
+public class PictureDownloader extends AsyncTask<Void, List<Picture>, Void> {
     private final String TAG = "PictureDownloader";
     private final String GET_INFO_PUBLIC_RES = "https://cloud-api.yandex.net/v1/disk/public/resources";
     private final int DOWNLOAD_LIMIT = 10;
@@ -26,8 +29,8 @@ public class PictureDownloader extends AsyncTask<Void, List<Resource>, Void> {
     private File cacheDir;
     private RestClient restClient;
     private DemoAdapter demoAdapter;
-
-    //private Context context;
+    private PictureDao pictureDao;
+    private DateFormat df;
     @SuppressLint("StaticFieldLeak")
     private SwipeRefreshLayout swipeRefreshLayout;
     private PictureListParser pictureListParser;
@@ -40,8 +43,10 @@ public class PictureDownloader extends AsyncTask<Void, List<Resource>, Void> {
             cacheDir = cDir;
         }
         pictureListParser = new PictureListParser();
-        restClient = Utils.getRestClientInstance();
-
+        restClient = App.getInstance().getRestClient();
+        AppDatabase db = App.getInstance().getAppDatabase();
+        pictureDao = db.pictureDao();
+        df = new SimpleDateFormat("d MMM", Locale.US);
     }
 
     @Override
@@ -55,8 +60,8 @@ public class PictureDownloader extends AsyncTask<Void, List<Resource>, Void> {
     }
 
     @Override
-    protected final void onProgressUpdate(List<Resource>... values) {
-        demoAdapter.UpdateData(values[0]);
+    protected final void onProgressUpdate(List<Picture>... values) {
+        demoAdapter.AddData(values[0]);
     }
 
     @Override
@@ -72,22 +77,28 @@ public class PictureDownloader extends AsyncTask<Void, List<Resource>, Void> {
             }
         });
         int itemCount = pictures.size() / 3;
+        List<Picture> pictureList = new ArrayList<>();
+        demoAdapter.ClearData();
         for (int from = 0, to = 0; from < itemCount; ) {
             to = from + DOWNLOAD_LIMIT > itemCount ? itemCount : from + DOWNLOAD_LIMIT;
+            pictureList.clear();
             for (int i = from; i < to; i++) {
-                File cacheFile = new File(cacheDir, pictures.get(i).getMd5());
+                Resource res = pictures.get(i);
+                File cacheFile = new File(cacheDir, res.getMd5());
                 if (!cacheFile.exists()) {
                     try {
-                        restClient.downloadPublicResource(pictures.get(i).getPublicKey(),
-                                pictures.get(i).getPath().getPath(), cacheFile, null);
+                        restClient.downloadPublicResource(res.getPublicKey(),
+                                res.getPath().getPath(), cacheFile, null);
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (ServerException e) {
                         e.printStackTrace();
                     }
                 }
+                pictureList.add(new Picture(cacheFile.getAbsolutePath(), df.format(res.getCreated())));
             }
-            publishProgress(pictures.subList(from , to));
+            pictureDao.insert(pictureList);
+            publishProgress(new ArrayList<>(pictureList));
             from = to;
         }
         return null;

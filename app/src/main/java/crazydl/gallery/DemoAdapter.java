@@ -32,24 +32,22 @@ public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.ViewHolder> {
     private static final int INVISIBLE = 1;
     private static final int HIDE = 2;
 
-    private ArrayList<Resource> items;
+    private ArrayList<Picture> items;
     private ArrayList<Integer> itemsPositions;
     private ArrayList<Integer> itemsVisible;
 
     private File cacheDir;
-    private DateFormat df;
+    private PictureDao pictureDao;
 
-    DemoAdapter(File cacheDir) {
+    int diffDatePosition = 0;
+
+    DemoAdapter() {
         items = new ArrayList<>();
         itemsPositions = new ArrayList<>();
         itemsVisible = new ArrayList<>();
 
-        df = new SimpleDateFormat("d MMM");
-
-        this.cacheDir = new File(cacheDir, "Images");
-        if (!cacheDir.exists() && !cacheDir.mkdir()) {
-            this.cacheDir = cacheDir;
-        }
+        AppDatabase db = App.getInstance().getAppDatabase();
+        pictureDao = db.pictureDao();
     }
 
     @Override
@@ -61,11 +59,11 @@ public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         if(itemsPositions.get(position) != -1){
-            Resource item = items.get(itemsPositions.get(position));
+            Picture item = items.get(itemsPositions.get(position));
             holder.date.setVisibility(View.VISIBLE);
             switch (itemsVisible.get(itemsPositions.get(position))){
                 case VISIBLE:
-                    holder.date.setText(df.format(item.getCreated()));
+                    holder.date.setText(item.getDate());
                     break;
                 case INVISIBLE:
                     holder.date.setText("");
@@ -75,10 +73,9 @@ public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.ViewHolder> {
                     break;
             }
             holder.image.setVisibility(View.VISIBLE);
-            File imageFile = new File(cacheDir, item.getMd5());
+            File imageFile = new File(item.getFileName());
             if (imageFile.exists()){
-                Bitmap bitmap = BitmapFactory.decodeFile(imageFile.getAbsolutePath());
-                holder.image.setImageBitmap(bitmap);
+                holder.image.setImageBitmap(BitmapFactory.decodeFile(imageFile.getAbsolutePath()));
             }
             else {
                 holder.image.setImageResource(R.drawable.download_error);
@@ -96,30 +93,34 @@ public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.ViewHolder> {
         return itemsPositions.size();
     }
 
-    public void UpdateData(List<Resource> pictures){
-        /*for(File file: cacheDir.listFiles()){
-            Log.d(TAG, file.getAbsolutePath());
-        }
-        Log.d(TAG, String.valueOf(items.size()) + "  " + String.valueOf(pictures.size()));*/
+    public void AddData(List<Picture> pictures){
+        int from = items.isEmpty() ? 0 :  items.size() - 1;
         items.addAll(pictures);
-        UpdatePositions();
+        UpdatePositions(from);
     }
 
-    public void UpdatePositions(){
-        Log.d(TAG, String.valueOf(itemsPositions.size()) + "  " + String.valueOf(itemsVisible.size()));
+    public void ClearData(){
+        int size = itemsPositions.size();
+        items.clear();
+        itemsPositions.clear();
+        itemsVisible.clear();
+        notifyItemRangeRemoved(0, size);
+    }
 
+    public void UpdatePositions(int from){
         int itemsSize = items.size();
         if(itemsSize == 0)
             return;
-        itemsPositions.clear();
-        itemsVisible.clear();
-        String currentDate = df.format(items.get(0).getCreated());
-        int diffDatePosition = 0;
-        itemsPositions.add(0);
-        itemsVisible.add(VISIBLE);
-        for (int i = 1; i < itemsSize; i++){
-            Resource item = items.get(i);
-            if(df.format(item.getCreated()).equals(currentDate)){
+        int startPosition = itemsPositions.size();
+        String currentDate = items.get(from).getDate();
+        if(from == 0){
+            diffDatePosition = 0;
+            itemsPositions.add(0);
+            itemsVisible.add(VISIBLE);
+        }
+        for (int i = from + 1; i < itemsSize; i++){
+            Picture item = items.get(i);
+            if(item.getDate().equals(currentDate)){
                 if(i - diffDatePosition > 1)
                     itemsVisible.add(HIDE);
                 else
@@ -127,7 +128,7 @@ public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.ViewHolder> {
             }
             else {
                 itemsVisible.add(VISIBLE);
-                currentDate = df.format(item.getCreated());
+                currentDate = item.getDate();
                 diffDatePosition = i;
                 if (itemsPositions.size() % 2 != 0) {
                     itemsPositions.add(-1);
@@ -135,9 +136,7 @@ public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.ViewHolder> {
             }
             itemsPositions.add(i);
         }
-        Log.d(TAG, "sss"+ String.valueOf(itemsPositions.size()) + "  " + String.valueOf(itemsVisible.size()));
-
-        notifyDataSetChanged();
+        notifyItemRangeInserted(startPosition, itemsPositions.size());
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {

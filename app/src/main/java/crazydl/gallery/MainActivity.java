@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
-        demoAdapter = new DemoAdapter(getCacheDir());
+        demoAdapter = new DemoAdapter();
         recyclerView.setAdapter(demoAdapter);
 
         //RefreshItems();
