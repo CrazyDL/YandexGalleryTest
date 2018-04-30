@@ -9,39 +9,39 @@ import android.util.Log;
 import com.yandex.disk.rest.RestClient;
 import com.yandex.disk.rest.exceptions.ServerException;
 import com.yandex.disk.rest.json.Resource;
-import com.yandex.disk.rest.util.ResourcePath;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class ImageDownloader extends AsyncTask<Void, List<Resource>, Void> {
-    private final String TAG = "ImageDownloader";
+public class PictureDownloader extends AsyncTask<Void, List<Resource>, Void> {
+    private final String TAG = "PictureDownloader";
     private final String GET_INFO_PUBLIC_RES = "https://cloud-api.yandex.net/v1/disk/public/resources";
-    private final int DOWNLOAD_LIMIT = 5;
+    private final int DOWNLOAD_LIMIT = 10;
 
 
-    private File casheDir;
+    private File cacheDir;
     private RestClient restClient;
-
+    private DemoAdapter demoAdapter;
 
     //private Context context;
     @SuppressLint("StaticFieldLeak")
     private SwipeRefreshLayout swipeRefreshLayout;
     private PictureListParser pictureListParser;
 
-    public ImageDownloader(Context context, SwipeRefreshLayout swipeRefreshLayout) {
-        //this.context = context;
+    public PictureDownloader(SwipeRefreshLayout swipeRefreshLayout, DemoAdapter demoAdapter, File cDir) {
         this.swipeRefreshLayout = swipeRefreshLayout;
+        this.demoAdapter = demoAdapter;
+        cacheDir = new File(cDir, "Images");
+        if (!cacheDir.exists() && !cacheDir.mkdir()) {
+            cacheDir = cDir;
+        }
         pictureListParser = new PictureListParser();
         restClient = Utils.getRestClientInstance();
-        casheDir = new File(context.getCacheDir(), "Images");
-        if (!casheDir.exists() && !casheDir.mkdir()) {
-            casheDir = context.getCacheDir();
-        }
-        Log.d(TAG, casheDir.getAbsolutePath());
+
     }
 
     @Override
@@ -56,25 +56,30 @@ public class ImageDownloader extends AsyncTask<Void, List<Resource>, Void> {
 
     @Override
     protected final void onProgressUpdate(List<Resource>... values) {
+        demoAdapter.UpdateData(values[0]);
     }
 
     @Override
     protected Void doInBackground(Void... voids) {
-        List<Resource> pictures = pictureListParser.UpdatePicturesData("https://yadi.sk/d/pz7-XL9k3UY724");
+        ArrayList<Resource> pictures = pictureListParser.UpdatePicturesData("https://yadi.sk/d/pz7-XL9k3UY724");
+        if(pictures.isEmpty()){
+            return null;
+        }
         Collections.sort(pictures, new Comparator<Resource>() {
             @Override
             public int compare(Resource resource, Resource t1) {
                 return resource.getCreated().compareTo(t1.getCreated());
             }
         });
-        int itemCount = pictures.size() / 10;
-        for (int i = 0; i < itemCount; ) {
-            for (int j = 0; j < DOWNLOAD_LIMIT; j++, i++) {
-                File cashFile = new File(casheDir, pictures.get(i).getMd5());
-                if (!cashFile.exists()) {
+        int itemCount = pictures.size() / 3;
+        for (int from = 0, to = 0; from < itemCount; ) {
+            to = from + DOWNLOAD_LIMIT > itemCount ? itemCount : from + DOWNLOAD_LIMIT;
+            for (int i = from; i < to; i++) {
+                File cacheFile = new File(cacheDir, pictures.get(i).getMd5());
+                if (!cacheFile.exists()) {
                     try {
                         restClient.downloadPublicResource(pictures.get(i).getPublicKey(),
-                                pictures.get(i).getPath().getPath(), cashFile, null);
+                                pictures.get(i).getPath().getPath(), cacheFile, null);
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (ServerException e) {
@@ -82,6 +87,8 @@ public class ImageDownloader extends AsyncTask<Void, List<Resource>, Void> {
                     }
                 }
             }
+            publishProgress(pictures.subList(from , to));
+            from = to;
         }
         return null;
     }

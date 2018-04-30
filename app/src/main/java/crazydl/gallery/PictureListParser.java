@@ -1,10 +1,7 @@
 package crazydl.gallery;
 
-import android.content.Context;
-import android.os.AsyncTask;
 import android.util.Log;
 
-import com.yandex.disk.rest.Credentials;
 import com.yandex.disk.rest.ResourcesArgs;
 import com.yandex.disk.rest.RestClient;
 import com.yandex.disk.rest.exceptions.ServerIOException;
@@ -13,7 +10,6 @@ import com.yandex.disk.rest.json.ResourceList;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 public class PictureListParser {
     private final String TAG = "PictureListParser";
@@ -21,7 +17,7 @@ public class PictureListParser {
     private final int DOWNLOAD_LIMIT = 20;
 
     private RestClient restClient;
-    private List<Resource> pictureItems;
+    private ArrayList<Resource> pictureItems;
 
     public PictureListParser() {
         restClient =  Utils.getRestClientInstance();
@@ -71,7 +67,8 @@ public class PictureListParser {
         }
     }
 
-    public List<Resource> UpdatePicturesData(String publicKey){
+    public ArrayList<Resource> UpdatePicturesData(String publicKey){
+        pictureItems.clear();
         GetPublicRes(publicKey, 0);
         return pictureItems;
     }
