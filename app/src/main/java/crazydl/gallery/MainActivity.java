@@ -15,7 +15,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     private final int PERMISSION_REQUEST_INTERNET_CODE = 0;
 
     private RecyclerView recyclerView;
-    private DemoAdapter demoAdapter;
+    private PictureAdapter pictureAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
@@ -30,8 +30,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
-        demoAdapter = new DemoAdapter();
-        recyclerView.setAdapter(demoAdapter);
+        pictureAdapter = new PictureAdapter();
+        recyclerView.setAdapter(pictureAdapter);
 
         //RefreshItems();
     }
@@ -66,6 +66,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
     private void RefreshItems(){
-        new PictureDownloader(swipeRefreshLayout, demoAdapter, getCacheDir()).execute();
+        new PictureDownloader(swipeRefreshLayout, pictureAdapter, getCacheDir()).execute();
     }
 }

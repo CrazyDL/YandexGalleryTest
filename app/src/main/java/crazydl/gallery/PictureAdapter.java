@@ -1,32 +1,20 @@
 package crazydl.gallery;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.yandex.disk.rest.json.Resource;
+import com.bumptech.glide.Glide;
 
-import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.ViewHolder> {
-    private final String TAG = "DemoAdapter";
+public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHolder> {
+    private final String TAG = "PictureAdapter";
 
     private static final int VISIBLE = 0;
     private static final int INVISIBLE = 1;
@@ -36,12 +24,11 @@ public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.ViewHolder> {
     private ArrayList<Integer> itemsPositions;
     private ArrayList<Integer> itemsVisible;
 
-    private File cacheDir;
     private PictureDao pictureDao;
 
-    int diffDatePosition = 0;
+    private int diffDatePosition = 0;
 
-    DemoAdapter() {
+    PictureAdapter() {
         items = new ArrayList<>();
         itemsPositions = new ArrayList<>();
         itemsVisible = new ArrayList<>();
@@ -73,13 +60,12 @@ public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.ViewHolder> {
                     break;
             }
             holder.image.setVisibility(View.VISIBLE);
-            File imageFile = new File(item.getFileName());
-            if (imageFile.exists()){
-                holder.image.setImageBitmap(BitmapFactory.decodeFile(imageFile.getAbsolutePath()));
-            }
-            else {
-                holder.image.setImageResource(R.drawable.download_error);
-            }
+            Glide.with(holder.image.getContext())
+                    .load("file:///" + item.getFileName())
+                    .centerCrop()
+                    .placeholder(R.drawable.download_refresh)
+                    .error(R.drawable.download_error)
+                    .into(holder.image);
         }
         else {
             holder.date.setVisibility(View.GONE);
@@ -107,7 +93,7 @@ public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.ViewHolder> {
         notifyItemRangeRemoved(0, size);
     }
 
-    public void UpdatePositions(int from){
+    private void UpdatePositions(int from){
         int itemsSize = items.size();
         if(itemsSize == 0)
             return;

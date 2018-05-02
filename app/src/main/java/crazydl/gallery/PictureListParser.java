@@ -19,12 +19,12 @@ public class PictureListParser {
     private RestClient restClient;
     private ArrayList<Resource> resources;
 
-    public PictureListParser() {
+    PictureListParser() {
         restClient =  App.getInstance().getRestClient();
         resources = new ArrayList<>();
     }
 
-    public void GetPublicRes(String publicUrl, int offset){
+    private void GetPublicRes(String publicUrl, int offset){
         ResourcesArgs.Builder resBuilder = new ResourcesArgs.Builder()
                 .setPublicKey(publicUrl)
                 .setSort(ResourcesArgs.Sort.created)

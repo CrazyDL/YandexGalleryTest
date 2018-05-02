@@ -1,10 +1,8 @@
 package crazydl.gallery;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.util.Log;
 
 import com.yandex.disk.rest.RestClient;
 import com.yandex.disk.rest.exceptions.ServerException;
@@ -28,16 +26,16 @@ public class PictureDownloader extends AsyncTask<Void, List<Picture>, Void> {
 
     private File cacheDir;
     private RestClient restClient;
-    private DemoAdapter demoAdapter;
+    private PictureAdapter pictureAdapter;
     private PictureDao pictureDao;
     private DateFormat df;
     @SuppressLint("StaticFieldLeak")
     private SwipeRefreshLayout swipeRefreshLayout;
     private PictureListParser pictureListParser;
 
-    public PictureDownloader(SwipeRefreshLayout swipeRefreshLayout, DemoAdapter demoAdapter, File cDir) {
+    public PictureDownloader(SwipeRefreshLayout swipeRefreshLayout, PictureAdapter pictureAdapter, File cDir) {
         this.swipeRefreshLayout = swipeRefreshLayout;
-        this.demoAdapter = demoAdapter;
+        this.pictureAdapter = pictureAdapter;
         cacheDir = new File(cDir, "Images");
         if (!cacheDir.exists() && !cacheDir.mkdir()) {
             cacheDir = cDir;
@@ -59,9 +57,10 @@ public class PictureDownloader extends AsyncTask<Void, List<Picture>, Void> {
         swipeRefreshLayout.setRefreshing(false);
     }
 
+    @SafeVarargs
     @Override
     protected final void onProgressUpdate(List<Picture>... values) {
-        demoAdapter.AddData(values[0]);
+        pictureAdapter.AddData(values[0]);
     }
 
     @Override
@@ -73,12 +72,12 @@ public class PictureDownloader extends AsyncTask<Void, List<Picture>, Void> {
         Collections.sort(pictures, new Comparator<Resource>() {
             @Override
             public int compare(Resource resource, Resource t1) {
-                return resource.getCreated().compareTo(t1.getCreated());
+                return t1.getCreated().compareTo(resource.getCreated());
             }
         });
-        int itemCount = pictures.size() / 3;
+        int itemCount = pictures.size();
         List<Picture> pictureList = new ArrayList<>();
-        demoAdapter.ClearData();
+        pictureAdapter.ClearData();
         for (int from = 0, to = 0; from < itemCount; ) {
             to = from + DOWNLOAD_LIMIT > itemCount ? itemCount : from + DOWNLOAD_LIMIT;
             pictureList.clear();
