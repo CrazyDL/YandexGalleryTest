@@ -10,10 +10,13 @@ public class Picture {
     @NonNull
     private String filePath;
     @NonNull
+    private String name;
+    @NonNull
     private String date;
 
-    Picture(@NonNull String filePath, @NonNull String date) {
+    public Picture(@NonNull String filePath, @NonNull String name, @NonNull String date) {
         this.filePath = filePath;
+        this.name = name;
         this.date = date;
     }
 
@@ -23,6 +26,15 @@ public class Picture {
 
     public void setDate(@NonNull String date) {
         this.date = date;
+    }
+
+    public void setName(@NonNull String name) {
+        this.name = name;
+    }
+
+    @NonNull
+    public String getName() {
+        return name;
     }
 
     @NonNull

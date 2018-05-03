@@ -1,6 +1,7 @@
 package crazydl.gallery;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -8,13 +9,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHolder> {
     private final String TAG = "PictureAdapter";
@@ -64,16 +65,16 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
                     break;
             }
             holder.image.setVisibility(View.VISIBLE);
-            holder.image.setTag(IMAGE_PATH_TAG, item.getFilePath());
             Glide.with(holder.image.getContext())
                     .load("file:///" + item.getFilePath())
                     .centerCrop()
                     .placeholder(R.drawable.download_refresh)
-                    .error(R.drawable.download_error)
+                    .error(R.drawable.error)
                     .into(holder.image);
+            holder.path.setText(item.getFilePath());
         }
         else {
-            holder.image.setTag(IMAGE_PATH_TAG, "empty");
+            holder.path.setText("empty");
             holder.date.setVisibility(View.GONE);
             holder.image.setVisibility(View.GONE);
         }
@@ -153,7 +154,7 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
     }
 
     @SuppressLint("StaticFieldLeak")
-    public void DeleteInvalidCashe(){
+    public void DeleteInvalidCache(){
         new AsyncTask<Void, Void, Void>(){
             @Override
             protected Void doInBackground(Void... voids) {
@@ -170,6 +171,7 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
 
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView date;
+        TextView path;
         ImageView image;
 
         ViewHolder(View itemView) {
@@ -177,11 +179,18 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
             itemView.setOnClickListener(this);
             date = itemView.findViewById(R.id.date);
             image  = itemView.findViewById(R.id.image);
+            path  = itemView.findViewById(R.id.path);
         }
 
         @Override
         public void onClick(View view) {
-            Toast.makeText(view.getContext(), String.valueOf(getAdapterPosition()), Toast.LENGTH_SHORT).show();
+            if(path.getText().equals("empty")){
+                return;
+            }
+            Intent intent = new Intent(view.getContext(), FullPictureActivity.class);
+            intent.putExtra("filePath", path.getText());
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            view.getContext().startActivity(intent);
         }
     }
 }

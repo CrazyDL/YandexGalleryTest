@@ -92,7 +92,7 @@ public class PictureDownloader extends AsyncTask<Void, List<Picture>, Void> {
                         e.printStackTrace();
                     }
                 }
-                pictureList.add(new Picture(cacheFile.getAbsolutePath(), df.format(res.getCreated())));
+                pictureList.add(new Picture(cacheFile.getAbsolutePath(), res.getName(), df.format(res.getCreated())));
             }
             pictureDao.insert(pictureList);
             publishProgress(new ArrayList<>(pictureList));
