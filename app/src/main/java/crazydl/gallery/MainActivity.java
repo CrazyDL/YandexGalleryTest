@@ -10,6 +10,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.widget.Toast;
+
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
     private final int PERMISSION_REQUEST_INTERNET_CODE = 0;
@@ -33,7 +37,13 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         pictureAdapter = new PictureAdapter();
         recyclerView.setAdapter(pictureAdapter);
 
-        //RefreshItems();
+        pictureAdapter.LoadCashedData();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        pictureAdapter.DeleteInvalidCashe();
     }
 
     private boolean haveInternetPermission() {
@@ -66,6 +76,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
     private void RefreshItems(){
-        new PictureDownloader(swipeRefreshLayout, pictureAdapter, getCacheDir()).execute();
+        if(App.getInstance().isOnline()){
+            new PictureDownloader(swipeRefreshLayout, pictureAdapter).execute();
+        }
+        else{
+            Toast.makeText(getApplicationContext(), "No internet connection", Toast.LENGTH_SHORT).show();
+            pictureAdapter.LoadCashedData();
+        }
     }
 }

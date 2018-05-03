@@ -20,8 +20,7 @@ import java.util.Locale;
 
 public class PictureDownloader extends AsyncTask<Void, List<Picture>, Void> {
     private final String TAG = "PictureDownloader";
-    private final String GET_INFO_PUBLIC_RES = "https://cloud-api.yandex.net/v1/disk/public/resources";
-    private final int DOWNLOAD_LIMIT = 10;
+    private final int DOWNLOAD_LIMIT = 2;
 
 
     private File cacheDir;
@@ -33,17 +32,15 @@ public class PictureDownloader extends AsyncTask<Void, List<Picture>, Void> {
     private SwipeRefreshLayout swipeRefreshLayout;
     private PictureListParser pictureListParser;
 
-    public PictureDownloader(SwipeRefreshLayout swipeRefreshLayout, PictureAdapter pictureAdapter, File cDir) {
+    PictureDownloader(SwipeRefreshLayout swipeRefreshLayout, PictureAdapter pictureAdapter) {
         this.swipeRefreshLayout = swipeRefreshLayout;
         this.pictureAdapter = pictureAdapter;
-        cacheDir = new File(cDir, "Images");
-        if (!cacheDir.exists() && !cacheDir.mkdir()) {
-            cacheDir = cDir;
-        }
+
+        App app = App.getInstance();
         pictureListParser = new PictureListParser();
-        restClient = App.getInstance().getRestClient();
-        AppDatabase db = App.getInstance().getAppDatabase();
-        pictureDao = db.pictureDao();
+        restClient = app.getRestClient();
+        pictureDao = app.getAppDatabase().pictureDao();
+        cacheDir = app.getPictureCacheDir();
         df = new SimpleDateFormat("d MMM", Locale.US);
     }
 
@@ -65,6 +62,7 @@ public class PictureDownloader extends AsyncTask<Void, List<Picture>, Void> {
 
     @Override
     protected Void doInBackground(Void... voids) {
+        pictureDao.nukeTable();
         ArrayList<Resource> pictures = pictureListParser.UpdatePicturesData("https://yadi.sk/d/pz7-XL9k3UY724");
         if(pictures.isEmpty()){
             return null;

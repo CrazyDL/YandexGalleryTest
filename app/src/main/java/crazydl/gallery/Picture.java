@@ -8,17 +8,17 @@ import android.support.annotation.NonNull;
 public class Picture {
     @PrimaryKey
     @NonNull
-    private String fileName;
+    private String filePath;
     @NonNull
     private String date;
 
-    Picture(@NonNull String fileName, @NonNull String date) {
-        this.fileName = fileName;
+    Picture(@NonNull String filePath, @NonNull String date) {
+        this.filePath = filePath;
         this.date = date;
     }
 
-    public void setFileName(@NonNull String fileName) {
-        this.fileName = fileName;
+    public void setFilePath(@NonNull String filePath) {
+        this.filePath = filePath;
     }
 
     public void setDate(@NonNull String date) {
@@ -26,8 +26,8 @@ public class Picture {
     }
 
     @NonNull
-    public String getFileName() {
-        return fileName;
+    public String getFilePath() {
+        return filePath;
     }
 
     @NonNull

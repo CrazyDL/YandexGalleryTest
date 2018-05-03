@@ -34,11 +34,9 @@ public class PictureListParser {
         try {
             resource = restClient.listPublicResources(resBuilder.build());
         } catch (IOException e) {
-            Log.d(TAG, "IOException");
             e.printStackTrace();
             return;
         } catch (ServerIOException e) {
-            Log.d(TAG, "ServerIOException");
             e.printStackTrace();
             return;
         }

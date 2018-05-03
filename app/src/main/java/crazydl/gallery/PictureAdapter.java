@@ -1,5 +1,7 @@
 package crazydl.gallery;
 
+import android.annotation.SuppressLint;
+import android.os.AsyncTask;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,11 +12,13 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHolder> {
     private final String TAG = "PictureAdapter";
+    private final int IMAGE_PATH_TAG = 0;
 
     private static final int VISIBLE = 0;
     private static final int INVISIBLE = 1;
@@ -60,14 +64,16 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
                     break;
             }
             holder.image.setVisibility(View.VISIBLE);
+            holder.image.setTag(IMAGE_PATH_TAG, item.getFilePath());
             Glide.with(holder.image.getContext())
-                    .load("file:///" + item.getFileName())
+                    .load("file:///" + item.getFilePath())
                     .centerCrop()
                     .placeholder(R.drawable.download_refresh)
                     .error(R.drawable.download_error)
                     .into(holder.image);
         }
         else {
+            holder.image.setTag(IMAGE_PATH_TAG, "empty");
             holder.date.setVisibility(View.GONE);
             holder.image.setVisibility(View.GONE);
         }
@@ -83,14 +89,6 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
         int from = items.isEmpty() ? 0 :  items.size() - 1;
         items.addAll(pictures);
         UpdatePositions(from);
-    }
-
-    public void ClearData(){
-        int size = itemsPositions.size();
-        items.clear();
-        itemsPositions.clear();
-        itemsVisible.clear();
-        notifyItemRangeRemoved(0, size);
     }
 
     private void UpdatePositions(int from){
@@ -123,6 +121,51 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
             itemsPositions.add(i);
         }
         notifyItemRangeInserted(startPosition, itemsPositions.size());
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    public void LoadCashedData(){
+        new AsyncTask<Void, Void, ArrayList<Picture>>(){
+            @Override
+            protected void onPreExecute() {
+                ClearData();
+            }
+
+            @Override
+            protected void onPostExecute(ArrayList<Picture> pictures) {
+                items = pictures;
+                UpdatePositions(0);
+            }
+
+            @Override
+            protected ArrayList<Picture> doInBackground(Void... voids) {
+                return new ArrayList<>(pictureDao.getAll());
+            }
+        }.execute();
+    }
+
+    public void ClearData(){
+        int size = itemsPositions.size();
+        items.clear();
+        itemsPositions.clear();
+        itemsVisible.clear();
+        notifyItemRangeRemoved(0, size);
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    public void DeleteInvalidCashe(){
+        new AsyncTask<Void, Void, Void>(){
+            @Override
+            protected Void doInBackground(Void... voids) {
+                File cache = App.getInstance().getPictureCacheDir();
+                for(File file: cache.listFiles()){
+                    if(pictureDao.getByFilePath(file.getAbsolutePath()) == null){
+                        file.delete();
+                    }
+                }
+                return null;
+            }
+        }.execute();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
