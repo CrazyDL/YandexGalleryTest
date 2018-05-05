@@ -4,10 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/gray">
+    android:background="@color/colorBackground">
 
     <LinearLayout
-        android:background="@color/gray"
+        android:background="@color/colorBackgroundDark"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
@@ -18,22 +18,28 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="8"
-            android:background="@color/gray"
-            android:src="@drawable/close_fullimage"
+            android:background="@color/colorBackgroundDark"
+            android:src="@drawable/close_full_image"
             android:scaleType="fitCenter"
-            android:gravity="center_horizontal"
             android:padding="4dp"/>
 
         <TextView
             android:id="@+id/name"
-            android:alpha="80"
-            android:padding="4dp"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:textAlignment="center"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit ="marquee_forever"
+            android:scrollHorizontally="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:layout_margin="4dp"
             android:textSize="20sp"
-            android:textColor="@color/white"
-            android:layout_weight="2"/>
+            android:textColor="@color/colorText"
+            android:layout_weight="1"/>
     </LinearLayout>
 
     <ImageView

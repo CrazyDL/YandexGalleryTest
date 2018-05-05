@@ -62,8 +62,9 @@ public class PictureDownloader extends AsyncTask<Void, List<Picture>, Void> {
 
     @Override
     protected Void doInBackground(Void... voids) {
-        pictureDao.nukeTable();
         ArrayList<Resource> pictures = pictureListParser.UpdatePicturesData("https://yadi.sk/d/pz7-XL9k3UY724");
+        pictureDao.nukeTable();
+
         if(pictures.isEmpty()){
             return null;
         }

@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         else{
             Toast.makeText(getApplicationContext(), "No internet connection", Toast.LENGTH_SHORT).show();
             pictureAdapter.LoadCashedData();
+            swipeRefreshLayout.setRefreshing(false);
         }
     }
 }
