@@ -10,18 +10,13 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.squareup.picasso.Picasso;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHolder> {
-    private final String TAG = "PictureAdapter";
-    private final int IMAGE_PATH_TAG = 0;
-
     private static final int VISIBLE = 0;
     private static final int INVISIBLE = 1;
     private static final int HIDE = 2;
@@ -41,7 +36,17 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_view_element, parent, false);
-        return new ViewHolder(view);
+        ViewHolder h = new ViewHolder(view);
+        view.setOnClickListener(it -> {
+                int position = h.getAdapterPosition();
+                if(position != RecyclerView.NO_POSITION){
+                    Intent intent = new Intent(view.getContext(), FullPictureActivity.class);
+                    intent.putExtra("filePath", items.get(position).getFilePath());
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    view.getContext().startActivity(intent);
+                }
+            });
+        return h;
     }
 
     @Override
@@ -68,10 +73,8 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
                     .placeholder(R.drawable.download_refresh)
                     .error(R.drawable.error)
                     .into(holder.image);
-            holder.path.setText(item.getFilePath());
         }
         else {
-            holder.path.setText("empty");
             holder.date.setVisibility(View.GONE);
             holder.image.setVisibility(View.GONE);
         }
@@ -124,6 +127,7 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
         notifyItemRangeInserted(startPosition, itemsPositions.size());
     }
 
+    @SuppressLint("StaticFieldLeak")
     public void loadCashedData(){
         new AsyncTask<Void, Void, ArrayList<Picture>>(){
             @Override
@@ -152,28 +156,14 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
         notifyItemRangeRemoved(0, size);
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public static class ViewHolder extends RecyclerView.ViewHolder  {
         TextView date;
-        TextView path;
         ImageView image;
 
         ViewHolder(View itemView) {
             super(itemView);
-            itemView.setOnClickListener(this);
             date = itemView.findViewById(R.id.date);
             image  = itemView.findViewById(R.id.image);
-            path  = itemView.findViewById(R.id.path);
-        }
-
-        @Override
-        public void onClick(View view) {
-            if(path.getText().equals("empty")){
-                return;
-            }
-            Intent intent = new Intent(view.getContext(), FullPictureActivity.class);
-            intent.putExtra("filePath", path.getText());
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            view.getContext().startActivity(intent);
         }
     }
 }
