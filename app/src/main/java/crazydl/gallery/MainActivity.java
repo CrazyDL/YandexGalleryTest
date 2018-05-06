@@ -3,7 +3,6 @@ package crazydl.gallery;
 import android.Manifest;
 import android.app.FragmentManager;
 import android.content.pm.PackageManager;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -17,12 +16,10 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, TaskFragment.TaskCallback {
     private static final String TASK_FRAGMENT_TAG = "taskFragment";
-    private static final String RECYCLER_STATE = "recyclerState";
+
     private PictureAdapter pictureAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
     private TaskFragment taskFragment;
-    private RecyclerView recyclerView;
-    private Parcelable savedState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,14 +29,14 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(this);
 
-        recyclerView = findViewById(R.id.image_gallery);
+        RecyclerView recyclerView = findViewById(R.id.image_gallery);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        recyclerView.setLayoutManager(new GridLayoutManager(this, Utils.COLUMNS_COUNT));
+        pictureAdapter = Utils.getInstance().getPictureAdapter();
+        recyclerView.setAdapter(pictureAdapter);
 
         FragmentManager fm = getFragmentManager();
         taskFragment = (TaskFragment) fm.findFragmentByTag(TASK_FRAGMENT_TAG);
-        pictureAdapter = Utils.getInstance().getPictureAdapter();
-        recyclerView.setAdapter(pictureAdapter);
 
         if(taskFragment == null){
             taskFragment = new TaskFragment();
@@ -47,9 +44,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
         if(taskFragment.isWorking()){
             swipeRefreshLayout.setRefreshing(true);
+            taskFragment.continueTask();
         }
-
-        taskFragment.continueTask();
     }
 
     private void requestInternetPermission() {
@@ -79,7 +75,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     private void refreshItems(){
         if(Utils.getInstance().isOnline()){
             taskFragment.executeTask();
-            swipeRefreshLayout.setRefreshing(true);
         }
         else{
             Toast.makeText(getApplicationContext(), "No internet connection", Toast.LENGTH_SHORT).show();
@@ -90,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     @Override
     public void onPreExecute() {
+        swipeRefreshLayout.setRefreshing(true);
         pictureAdapter.clearData();
     }
 
@@ -105,30 +101,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        if(savedState != null){
-            recyclerView.getLayoutManager().onRestoreInstanceState(savedState);
-        }
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        savedState = savedInstanceState.getParcelable(RECYCLER_STATE);
-
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putParcelable(RECYCLER_STATE, recyclerView.getLayoutManager().onSaveInstanceState());
-    }
-
-    @Override
     public void onBackPressed() {
         super.onBackPressed();
-        //Utils.deleteInvalidCacheData();
-        Utils.clearCashedData();
+        Utils.deleteInvalidCacheData();
     }
 }

@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class PictureListParser {
-    private final String TAG = "PictureListParser";
-    private final String GET_INFO_PUBLIC_RES = "https://cloud-api.yandex.net/v1/disk/public/resources";
     private final int DOWNLOAD_LIMIT = 20;
 
     private RestClient restClient;

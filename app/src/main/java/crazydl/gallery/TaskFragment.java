@@ -1,16 +1,16 @@
 package crazydl.gallery;
 
+
 import android.app.Activity;
 import android.app.Fragment;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 
+
 import java.util.ArrayList;
 
 public class TaskFragment extends Fragment {
-    private PictureAdapter pictureAdapter;
     private TaskCallback taskCallback;
     private PictureDownloaderTask pictureDownloaderTask;
 
@@ -18,14 +18,6 @@ public class TaskFragment extends Fragment {
         void onPreExecute();
         void onProgress(ArrayList<Picture> pictures);
         void onPostExecute();
-    }
-
-    public PictureAdapter getPictureAdapter() {
-        return pictureAdapter;
-    }
-
-    public void setPictureAdapter(PictureAdapter pictureAdapter) {
-        this.pictureAdapter = pictureAdapter;
     }
 
     @Override

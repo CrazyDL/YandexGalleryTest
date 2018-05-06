@@ -1,5 +1,6 @@
 package crazydl.gallery;
 
+
 import android.os.AsyncTask;
 
 import com.yandex.disk.rest.RestClient;
@@ -12,13 +13,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
 public class PictureDownloaderTask extends AsyncTask<Void, ArrayList<Picture>, Boolean> {
-    private final String TAG = "PictureDownloaderTask";
-    private final int DOWNLOAD_LIMIT = 2;
+    private final int DOWNLOAD_LIMIT = 3;
 
     private Boolean result;
     private File cacheDir;
@@ -80,18 +79,13 @@ public class PictureDownloaderTask extends AsyncTask<Void, ArrayList<Picture>, B
 
     @Override
     protected Boolean doInBackground(Void... voids) {
-        ArrayList<Resource> pictures = pictureListParser.updatePicturesData("https://yadi.sk/d/pz7-XL9k3UY724");
+        ArrayList<Resource> pictures = pictureListParser.updatePicturesData(Utils.PUBLIC_FOLDER_URL);
         pictureDao.nukeTable();
 
         if(pictures.isEmpty()){
             return true;
         }
-        Collections.sort(pictures, new Comparator<Resource>() {
-            @Override
-            public int compare(Resource resource, Resource t1) {
-                return t1.getCreated().compareTo(resource.getCreated());
-            }
-        });
+        Collections.sort(pictures, (resource, t1) -> t1.getCreated().compareTo(resource.getCreated()));
         int itemCount = pictures.size();
         for (int from = 0, to; from < itemCount; ) {
             to = from + DOWNLOAD_LIMIT > itemCount ? itemCount : from + DOWNLOAD_LIMIT;

@@ -17,6 +17,9 @@ public interface PictureDao {
     @Query("SELECT * FROM picture WHERE filePath = :path")
     Picture getByFilePath(String path);
 
+    @Query("DELETE FROM picture")
+    void nukeTable();
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Picture picture);
 
@@ -28,7 +31,4 @@ public interface PictureDao {
 
     @Delete
     void delete(Picture picture);
-
-    @Query("DELETE FROM picture")
-    public void nukeTable();
 }

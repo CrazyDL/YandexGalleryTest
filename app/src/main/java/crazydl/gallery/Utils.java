@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
 import com.yandex.disk.rest.Credentials;
@@ -18,10 +17,13 @@ import java.io.File;
 
 public class Utils extends Application {
     public static final int PERMISSION_REQUEST_INTERNET_CODE = 0;
+    public static final int COLUMNS_COUNT = 2;
     public static final String PICTURE_DOWNLOAD_FOLDER = "Image";
-    public static Utils instance;
+    public static final String PUBLIC_FOLDER_URL = "https://yadi.sk/d/pz7-XL9k3UY724";
 
+    public static Utils instance;
     private static RestClient restClient;
+
     private AppDatabase appDatabase;
     private PictureAdapter pictureAdapter;
 
@@ -70,18 +72,18 @@ public class Utils extends Application {
     }
 
     public static void clearCashedData() {
-        File cache = Utils.getInstance().getPictureCacheDir();
-        for (File file : cache.listFiles()) {
-            file.delete();
-        }
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
-
+                File cache = Utils.getInstance().getPictureCacheDir();
+                for (File file : cache.listFiles()) {
+                    file.delete();
+                }
                 return null;
             }
         };
     }
+
     public static void deleteInvalidCacheData() {
         new AsyncTask<Void, Void, Void>() {
             @Override

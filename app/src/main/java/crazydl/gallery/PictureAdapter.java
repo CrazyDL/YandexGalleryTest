@@ -1,5 +1,6 @@
 package crazydl.gallery;
 
+
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -14,7 +15,6 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
-
 
 public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHolder> {
     private static final int VISIBLE = 0;
@@ -39,9 +39,9 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
         ViewHolder h = new ViewHolder(view);
         view.setOnClickListener(it -> {
                 int position = h.getAdapterPosition();
-                if(position != RecyclerView.NO_POSITION){
+                if(position != RecyclerView.NO_POSITION && itemsPositions.get(position) != -1){
                     Intent intent = new Intent(view.getContext(), FullPictureActivity.class);
-                    intent.putExtra("filePath", items.get(position).getFilePath());
+                    intent.putExtra("filePath", items.get(itemsPositions.get(position)).getFilePath());
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     view.getContext().startActivity(intent);
                 }
@@ -109,7 +109,7 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
         for (int i = from + 1; i < itemsSize; i++){
             Picture item = items.get(i);
             if(item.getDate().equals(currentDate)){
-                if(i - diffDatePosition > 1)
+                if(i - diffDatePosition > Utils.COLUMNS_COUNT - 1)
                     itemsVisible.add(HIDE);
                 else
                     itemsVisible.add(INVISIBLE);
@@ -118,8 +118,12 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
                 itemsVisible.add(VISIBLE);
                 currentDate = item.getDate();
                 diffDatePosition = i;
-                if (itemsPositions.size() % 2 != 0) {
-                    itemsPositions.add(-1);
+                int remainder = itemsPositions.size() % Utils.COLUMNS_COUNT;
+                if (remainder != 0) {
+                    while (Utils.COLUMNS_COUNT  - remainder > 0){
+                        itemsPositions.add(-1);
+                        remainder++;
+                    }
                 }
             }
             itemsPositions.add(i);
@@ -156,7 +160,7 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
         notifyItemRangeRemoved(0, size);
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder  {
+    static class ViewHolder extends RecyclerView.ViewHolder  {
         TextView date;
         ImageView image;
 

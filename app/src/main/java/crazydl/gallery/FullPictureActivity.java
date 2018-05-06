@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -19,6 +18,7 @@ import java.util.ArrayList;
 public class FullPictureActivity extends AppCompatActivity {
     private final String SAVED_CURRENT_POSITION = "savedCurrentPosition";
     private final int INVALID_POSITION = -1;
+
     private static ArrayList<Picture> items;
     private int currentPosition;
 
@@ -40,12 +40,7 @@ public class FullPictureActivity extends AppCompatActivity {
         imageName = findViewById(R.id.name);
         fullImage = findViewById(R.id.fullImage);
 
-        closeFullImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
-            }
-        });
+        closeFullImage.setOnClickListener(it -> finish());
 
         fullImage.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
             public void onSwipeTop() {
@@ -94,7 +89,6 @@ public class FullPictureActivity extends AppCompatActivity {
 
     private void updateViews() {
         imageName.setText(items.get(currentPosition).getName());
-        //fullImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
         Picasso.with(getApplicationContext())
                 .load("file:///" + items.get(currentPosition).getFilePath())
                 .fit()
