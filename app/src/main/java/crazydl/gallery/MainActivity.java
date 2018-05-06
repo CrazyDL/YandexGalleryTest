@@ -1,23 +1,28 @@
 package crazydl.gallery;
 
 import android.Manifest;
+import android.app.FragmentManager;
 import android.content.pm.PackageManager;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
-    private final int PERMISSION_REQUEST_INTERNET_CODE = 0;
+import java.util.ArrayList;
 
-    private RecyclerView recyclerView;
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, TaskFragment.TaskCallback {
+    private static final String TASK_FRAGMENT_TAG = "taskFragment";
+    private static final String RECYCLER_STATE = "recyclerState";
     private PictureAdapter pictureAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
+    private TaskFragment taskFragment;
+    private RecyclerView recyclerView;
+    private Parcelable savedState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,55 +36,99 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
-        pictureAdapter = new PictureAdapter();
+        FragmentManager fm = getFragmentManager();
+        taskFragment = (TaskFragment) fm.findFragmentByTag(TASK_FRAGMENT_TAG);
+        pictureAdapter = Utils.getInstance().getPictureAdapter();
         recyclerView.setAdapter(pictureAdapter);
 
-        pictureAdapter.LoadCashedData();
-    }
+        if(taskFragment == null){
+            taskFragment = new TaskFragment();
+            fm.beginTransaction().add(taskFragment, TASK_FRAGMENT_TAG).commit();
+        }
+        if(taskFragment.isWorking()){
+            swipeRefreshLayout.setRefreshing(true);
+        }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        pictureAdapter.DeleteInvalidCache();
-    }
-
-    private boolean haveInternetPermission() {
-        return ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.INTERNET)
-                == PackageManager.PERMISSION_GRANTED;
+        taskFragment.continueTask();
     }
 
     private void requestInternetPermission() {
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET},
-                PERMISSION_REQUEST_INTERNET_CODE);
+        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.INTERNET},
+                Utils.PERMISSION_REQUEST_INTERNET_CODE);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode){
-            case PERMISSION_REQUEST_INTERNET_CODE:
+            case Utils.PERMISSION_REQUEST_INTERNET_CODE:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                    RefreshItems();
+                    refreshItems();
                 }
         }
     }
 
     @Override
     public void onRefresh() {
-        if (haveInternetPermission()) {
-            RefreshItems();
+        if (Utils.getInstance().haveInternetPermission()) {
+            refreshItems();
         } else {
             requestInternetPermission();
         }
     }
 
-    private void RefreshItems(){
-        if(App.getInstance().isOnline()){
-            new PictureDownloader(swipeRefreshLayout, pictureAdapter).execute();
+    private void refreshItems(){
+        if(Utils.getInstance().isOnline()){
+            taskFragment.executeTask();
+            swipeRefreshLayout.setRefreshing(true);
         }
         else{
             Toast.makeText(getApplicationContext(), "No internet connection", Toast.LENGTH_SHORT).show();
-            pictureAdapter.LoadCashedData();
+            pictureAdapter.loadCashedData();
             swipeRefreshLayout.setRefreshing(false);
         }
+    }
+
+    @Override
+    public void onPreExecute() {
+        pictureAdapter.clearData();
+    }
+
+    @Override
+    public void onProgress(ArrayList<Picture> pictures) {
+        pictureAdapter.addData(pictures);
+    }
+
+    @Override
+    public void onPostExecute() {
+        swipeRefreshLayout.setRefreshing(false);
+        taskFragment.finishTask();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(savedState != null){
+            recyclerView.getLayoutManager().onRestoreInstanceState(savedState);
+        }
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        savedState = savedInstanceState.getParcelable(RECYCLER_STATE);
+
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(RECYCLER_STATE, recyclerView.getLayoutManager().onSaveInstanceState());
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        //Utils.deleteInvalidCacheData();
+        Utils.clearCashedData();
     }
 }

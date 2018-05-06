@@ -23,10 +23,11 @@ public class FullPictureActivity extends AppCompatActivity {
     private TextView imageName;
     private ImageView fullImage;
 
-    @SuppressLint({"StaticFieldLeak", "ClickableViewAccessibility"})
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getSupportActionBar().hide();
         setContentView(R.layout.fullscreen_picture_layout);
         closeFullImage = findViewById(R.id.closeFullImage);
         imageName = findViewById(R.id.name);
@@ -49,23 +50,21 @@ public class FullPictureActivity extends AppCompatActivity {
             public void onSwipeRight() {
                 if(currentItem > 0){
                     currentItem--;
-                    UpdateViews();
+                    updateViews();
                 }
             }
             public void onSwipeLeft() {
                 if(currentItem < items.size() - 1){
                     currentItem++;
-                    UpdateViews();
+                    updateViews();
                 }
             }
 
         });
 
-        getSupportActionBar().hide();
-
         final String filepath = getIntent().getStringExtra("filePath");
 
-        pictureDao = App.getInstance().getAppDatabase().pictureDao();
+        pictureDao = Utils.getInstance().getAppDatabase().pictureDao();
         new AsyncTask<Void, Void, ArrayList<Picture>>(){
 
             @Override
@@ -85,12 +84,12 @@ public class FullPictureActivity extends AppCompatActivity {
                         break;
                     }
                 }
-                UpdateViews();
+                updateViews();
             }
-        }.execute();
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-    private void UpdateViews(){
+    private void updateViews(){
         imageName.setText(items.get(currentItem).getName());
         Bitmap bitmap = BitmapFactory.decodeFile(items.get(currentItem).getFilePath());
         if (bitmap != null) {

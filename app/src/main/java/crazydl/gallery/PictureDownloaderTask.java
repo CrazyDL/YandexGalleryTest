@@ -1,8 +1,6 @@
 package crazydl.gallery;
 
-import android.annotation.SuppressLint;
 import android.os.AsyncTask;
-import android.support.v4.widget.SwipeRefreshLayout;
 
 import com.yandex.disk.rest.RestClient;
 import com.yandex.disk.rest.exceptions.ServerException;
@@ -18,55 +16,75 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
-public class PictureDownloader extends AsyncTask<Void, List<Picture>, Void> {
-    private final String TAG = "PictureDownloader";
+public class PictureDownloaderTask extends AsyncTask<Void, ArrayList<Picture>, Boolean> {
+    private final String TAG = "PictureDownloaderTask";
     private final int DOWNLOAD_LIMIT = 2;
 
-
+    private Boolean result;
     private File cacheDir;
     private RestClient restClient;
-    private PictureAdapter pictureAdapter;
     private PictureDao pictureDao;
     private DateFormat df;
-    @SuppressLint("StaticFieldLeak")
-    private SwipeRefreshLayout swipeRefreshLayout;
     private PictureListParser pictureListParser;
+    private TaskFragment.TaskCallback taskCallback;
+    private List<Picture> pictureList;
 
-    PictureDownloader(SwipeRefreshLayout swipeRefreshLayout, PictureAdapter pictureAdapter) {
-        this.swipeRefreshLayout = swipeRefreshLayout;
-        this.pictureAdapter = pictureAdapter;
-
-        App app = App.getInstance();
+    PictureDownloaderTask() {
+        Utils utils = Utils.getInstance();
         pictureListParser = new PictureListParser();
-        restClient = app.getRestClient();
-        pictureDao = app.getAppDatabase().pictureDao();
-        cacheDir = app.getPictureCacheDir();
+        restClient = utils.getRestClient();
+        pictureDao = utils.getAppDatabase().pictureDao();
+        cacheDir = utils.getPictureCacheDir();
         df = new SimpleDateFormat("d MMM", Locale.US);
+        pictureList = new ArrayList<>();
+        result = null;
+    }
+
+    public void setTaskCallback(TaskFragment.TaskCallback taskCallback) {
+        this.taskCallback = taskCallback;
+        if (taskCallback != null){
+            if(!pictureList.isEmpty()){
+                taskCallback.onProgress(new ArrayList<>(pictureList));
+                pictureList.clear();
+            }
+            if(result != null){
+                taskCallback.onPostExecute();
+            }
+        }
     }
 
     @Override
     protected void onPreExecute() {
-        swipeRefreshLayout.setRefreshing(true);
-    }
-
-    @Override
-    protected void onPostExecute(Void aVoid) {
-        swipeRefreshLayout.setRefreshing(false);
+        if(taskCallback != null){
+            taskCallback.onPreExecute();
+        }
     }
 
     @SafeVarargs
     @Override
-    protected final void onProgressUpdate(List<Picture>... values) {
-        pictureAdapter.AddData(values[0]);
+    protected final void onProgressUpdate(ArrayList<Picture>... values) {
+        taskCallback.onProgress(values[0]);
     }
 
     @Override
-    protected Void doInBackground(Void... voids) {
-        ArrayList<Resource> pictures = pictureListParser.UpdatePicturesData("https://yadi.sk/d/pz7-XL9k3UY724");
+    protected void onPostExecute(Boolean res) {
+        if (taskCallback != null){
+            if(!pictureList.isEmpty()){
+                taskCallback.onProgress(new ArrayList<>(pictureList));
+                pictureList.clear();
+            }
+            taskCallback.onPostExecute();
+        }
+        result = res;
+    }
+
+    @Override
+    protected Boolean doInBackground(Void... voids) {
+        ArrayList<Resource> pictures = pictureListParser.updatePicturesData("https://yadi.sk/d/pz7-XL9k3UY724");
         pictureDao.nukeTable();
 
         if(pictures.isEmpty()){
-            return null;
+            return true;
         }
         Collections.sort(pictures, new Comparator<Resource>() {
             @Override
@@ -75,12 +93,12 @@ public class PictureDownloader extends AsyncTask<Void, List<Picture>, Void> {
             }
         });
         int itemCount = pictures.size();
-        List<Picture> pictureList = new ArrayList<>();
-        pictureAdapter.ClearData();
-        for (int from = 0, to = 0; from < itemCount; ) {
+        for (int from = 0, to; from < itemCount; ) {
             to = from + DOWNLOAD_LIMIT > itemCount ? itemCount : from + DOWNLOAD_LIMIT;
-            pictureList.clear();
             for (int i = from; i < to; i++) {
+                if (isCancelled()) {
+                    return false;
+                }
                 Resource res = pictures.get(i);
                 File cacheFile = new File(cacheDir, res.getMd5());
                 if (!cacheFile.exists()) {
@@ -96,9 +114,12 @@ public class PictureDownloader extends AsyncTask<Void, List<Picture>, Void> {
                 pictureList.add(new Picture(cacheFile.getAbsolutePath(), res.getName(), df.format(res.getCreated())));
             }
             pictureDao.insert(pictureList);
-            publishProgress(new ArrayList<>(pictureList));
+            if (taskCallback != null){
+                publishProgress(new ArrayList<>(pictureList));
+                pictureList.clear();
+            }
             from = to;
         }
-        return null;
+        return true;
     }
 }

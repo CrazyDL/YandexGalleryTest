@@ -29,17 +29,12 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
     private ArrayList<Integer> itemsPositions;
     private ArrayList<Integer> itemsVisible;
 
-    private PictureDao pictureDao;
-
     private int diffDatePosition = 0;
 
     PictureAdapter() {
         items = new ArrayList<>();
         itemsPositions = new ArrayList<>();
         itemsVisible = new ArrayList<>();
-
-        AppDatabase db = App.getInstance().getAppDatabase();
-        pictureDao = db.pictureDao();
     }
 
     @Override
@@ -86,13 +81,16 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
         return itemsPositions.size();
     }
 
-    public void AddData(List<Picture> pictures){
+    public void addData(List<Picture> pictures){
+        if (pictures == null || pictures.isEmpty()){
+            return;
+        }
         int from = items.isEmpty() ? 0 :  items.size() - 1;
         items.addAll(pictures);
-        UpdatePositions(from);
+        updatePositions(from);
     }
 
-    private void UpdatePositions(int from){
+    private void updatePositions(int from){
         int itemsSize = items.size();
         if(itemsSize == 0)
             return;
@@ -124,49 +122,32 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
         notifyItemRangeInserted(startPosition, itemsPositions.size());
     }
 
-    @SuppressLint("StaticFieldLeak")
-    public void LoadCashedData(){
+    public void loadCashedData(){
         new AsyncTask<Void, Void, ArrayList<Picture>>(){
             @Override
             protected void onPreExecute() {
-                ClearData();
+                clearData();
             }
 
             @Override
             protected void onPostExecute(ArrayList<Picture> pictures) {
                 items = pictures;
-                UpdatePositions(0);
+                updatePositions(0);
             }
 
             @Override
             protected ArrayList<Picture> doInBackground(Void... voids) {
-                return new ArrayList<>(pictureDao.getAll());
+                return new ArrayList<>(Utils.getInstance().getAppDatabase().pictureDao().getAll());
             }
-        }.execute();
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-    public void ClearData(){
+    public void clearData(){
         int size = itemsPositions.size();
         items.clear();
         itemsPositions.clear();
         itemsVisible.clear();
         notifyItemRangeRemoved(0, size);
-    }
-
-    @SuppressLint("StaticFieldLeak")
-    public void DeleteInvalidCache(){
-        new AsyncTask<Void, Void, Void>(){
-            @Override
-            protected Void doInBackground(Void... voids) {
-                File cache = App.getInstance().getPictureCacheDir();
-                for(File file: cache.listFiles()){
-                    if(pictureDao.getByFilePath(file.getAbsolutePath()) == null){
-                        file.delete();
-                    }
-                }
-                return null;
-            }
-        }.execute();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {

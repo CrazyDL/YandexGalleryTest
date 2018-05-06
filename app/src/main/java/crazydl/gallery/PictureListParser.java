@@ -1,7 +1,5 @@
 package crazydl.gallery;
 
-import android.util.Log;
-
 import com.yandex.disk.rest.ResourcesArgs;
 import com.yandex.disk.rest.RestClient;
 import com.yandex.disk.rest.exceptions.ServerIOException;
@@ -20,11 +18,11 @@ public class PictureListParser {
     private ArrayList<Resource> resources;
 
     PictureListParser() {
-        restClient =  App.getInstance().getRestClient();
+        restClient =  Utils.getInstance().getRestClient();
         resources = new ArrayList<>();
     }
 
-    private void GetPublicRes(String publicUrl, int offset){
+    private void getPublicRes(String publicUrl, int offset){
         ResourcesArgs.Builder resBuilder = new ResourcesArgs.Builder()
                 .setPublicKey(publicUrl)
                 .setSort(ResourcesArgs.Sort.created)
@@ -42,21 +40,21 @@ public class PictureListParser {
         }
         if (resource == null)
             return;
-        ParsePublicRes(resource);
+        parsePublicRes(resource);
         ResourceList rl = resource.getResourceList();
         if (rl != null && rl.getLimit() + rl.getOffset() < rl.getTotal()){
-            GetPublicRes(publicUrl, rl.getLimit() + rl.getOffset());
+            getPublicRes(publicUrl, rl.getLimit() + rl.getOffset());
         }
     }
 
-    private void ParsePublicRes(Resource resource){
+    private void parsePublicRes(Resource resource){
         if(resource.getType().equals("dir")){
             for (Resource res : resource.getResourceList().getItems()) {
                 if(res.getType().equals("dir") && res.getPublicUrl() != null) {
-                    GetPublicRes(res.getPublicUrl(),0);
+                    getPublicRes(res.getPublicUrl(),0);
                 }
                 else if (res.getType().equals("file") && res.getMediaType().equals("image")){
-                    ParsePublicRes(res);
+                    parsePublicRes(res);
                 }
             }
         }
@@ -65,9 +63,9 @@ public class PictureListParser {
         }
     }
 
-    public ArrayList<Resource> UpdatePicturesData(String publicKey){
+    public ArrayList<Resource> updatePicturesData(String publicKey){
         resources.clear();
-        GetPublicRes(publicKey, 0);
+        getPublicRes(publicKey, 0);
         return resources;
     }
 }
