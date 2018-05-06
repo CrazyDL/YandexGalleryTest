@@ -9,9 +9,8 @@
     <LinearLayout
         android:background="@color/colorBackgroundDark"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:layout_weight="9">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
         <ImageButton
             android:id="@+id/closeFullImage"
@@ -46,7 +45,5 @@
         android:id="@+id/fullImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:adjustViewBounds="true"
-        android:scaleType="fitCenter"
-        android:layout_weight="1"/>
+        />
 </LinearLayout>

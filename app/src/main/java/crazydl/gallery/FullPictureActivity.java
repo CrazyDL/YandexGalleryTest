@@ -1,25 +1,29 @@
 package crazydl.gallery;
 
 import android.annotation.SuppressLint;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.squareup.picasso.Picasso;
+
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 public class FullPictureActivity extends AppCompatActivity {
-    private ArrayList<Picture> items;
-    private PictureDao pictureDao;
-    private int currentItem;
+    private final String SAVED_CURRENT_POSITION = "savedCurrentPosition";
+    private final int INVALID_POSITION = -1;
+    private static ArrayList<Picture> items;
+    private int currentPosition;
 
-    private ImageButton closeFullImage;
     private TextView imageName;
     private ImageView fullImage;
 
@@ -27,9 +31,14 @@ public class FullPictureActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getSupportActionBar().hide();
         setContentView(R.layout.fullscreen_picture_layout);
-        closeFullImage = findViewById(R.id.closeFullImage);
+
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
+
+        ImageButton closeFullImage = findViewById(R.id.closeFullImage);
         imageName = findViewById(R.id.name);
         fullImage = findViewById(R.id.fullImage);
 
@@ -40,63 +49,84 @@ public class FullPictureActivity extends AppCompatActivity {
             }
         });
 
-        fullImage.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()){
+        fullImage.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
             public void onSwipeTop() {
                 finish();
             }
+
             public void onSwipeBottom() {
                 finish();
             }
+
             public void onSwipeRight() {
-                if(currentItem > 0){
-                    currentItem--;
+                if (currentPosition > 0) {
+                    currentPosition--;
                     updateViews();
                 }
             }
+
             public void onSwipeLeft() {
-                if(currentItem < items.size() - 1){
-                    currentItem++;
+                if (currentPosition < items.size() - 1) {
+                    currentPosition++;
                     updateViews();
                 }
             }
 
         });
 
-        final String filepath = getIntent().getStringExtra("filePath");
-
-        pictureDao = Utils.getInstance().getAppDatabase().pictureDao();
-        new AsyncTask<Void, Void, ArrayList<Picture>>(){
-
-            @Override
-            protected ArrayList<Picture> doInBackground(Void... voids) {
-                return new ArrayList<>(pictureDao.getAll());
-            }
-
-            @Override
-            protected void onPostExecute(ArrayList<Picture> pictures) {
-                if (pictures.isEmpty()){
-                    return;
-                }
-                items = pictures;
-                for (int i = 0; i < items.size(); i++){
-                    if(items.get(i).getFilePath().equals(filepath)){
-                        currentItem = i;
-                        break;
-                    }
-                }
-                updateViews();
-            }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        currentPosition = savedInstanceState == null ? INVALID_POSITION : savedInstanceState.getInt(SAVED_CURRENT_POSITION);
+        new LoadDataFromDbTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-    private void updateViews(){
-        imageName.setText(items.get(currentItem).getName());
-        Bitmap bitmap = BitmapFactory.decodeFile(items.get(currentItem).getFilePath());
-        if (bitmap != null) {
-            fullImage.setImageBitmap(bitmap);
+    private void findCurrentPicture(ArrayList<Picture> pictures) {
+        items = pictures;
+        if (currentPosition == INVALID_POSITION) {
+            String filepath = getIntent().getStringExtra("filePath");
+            for (int i = 0; i < items.size(); i++) {
+                if (items.get(i).getFilePath().equals(filepath)) {
+                    currentPosition = i;
+                    break;
+                }
+            }
         }
-        else {
-            fullImage.setImageResource(R.drawable.reversed_error);
+        if (!items.isEmpty()) {
+            updateViews();
+        }
+    }
+
+    private void updateViews() {
+        imageName.setText(items.get(currentPosition).getName());
+        //fullImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        Picasso.with(getApplicationContext())
+                .load("file:///" + items.get(currentPosition).getFilePath())
+                .fit()
+                .centerInside()
+                .placeholder(R.drawable.download_refresh)
+                .error(R.drawable.error)
+                .into(fullImage);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(SAVED_CURRENT_POSITION, currentPosition);
+    }
+
+    static class LoadDataFromDbTask extends AsyncTask<Void, Void, ArrayList<Picture>> {
+        private WeakReference<FullPictureActivity> activityWeakReference;
+
+        LoadDataFromDbTask(FullPictureActivity fullPictureActivity) {
+            activityWeakReference = new WeakReference<>(fullPictureActivity);
+        }
+
+        @Override
+        protected ArrayList<Picture> doInBackground(Void... voids) {
+            return new ArrayList<>(Utils.getInstance().getAppDatabase().pictureDao().getAll());
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<Picture> pictures) {
+            activityWeakReference.get().findCurrentPicture(pictures);
         }
     }
 }

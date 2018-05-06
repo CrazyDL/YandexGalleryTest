@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -60,8 +61,9 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
                     break;
             }
             holder.image.setVisibility(View.VISIBLE);
-            Glide.with(holder.image.getContext())
+            Picasso.with(holder.image.getContext())
                     .load("file:///" + item.getFilePath())
+                    .fit()
                     .centerCrop()
                     .placeholder(R.drawable.download_refresh)
                     .error(R.drawable.error)
