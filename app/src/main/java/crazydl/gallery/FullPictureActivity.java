@@ -15,6 +15,8 @@ import com.squareup.picasso.Picasso;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
+import crazydl.gallery.domain.repository.model.Picture;
+
 public class FullPictureActivity extends AppCompatActivity {
     private final String SAVED_CURRENT_POSITION = "savedCurrentPosition";
     private final int INVALID_POSITION = -1;

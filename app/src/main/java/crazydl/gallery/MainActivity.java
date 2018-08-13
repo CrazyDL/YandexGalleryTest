@@ -12,14 +12,11 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-
-public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, TaskFragment.TaskCallback {
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
     private static final String TASK_FRAGMENT_TAG = "taskFragment";
 
     private PictureAdapter pictureAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
-    private TaskFragment taskFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,17 +32,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         pictureAdapter = Utils.getInstance().getPictureAdapter();
         recyclerView.setAdapter(pictureAdapter);
 
-        FragmentManager fm = getFragmentManager();
-        taskFragment = (TaskFragment) fm.findFragmentByTag(TASK_FRAGMENT_TAG);
-
-        if(taskFragment == null){
-            taskFragment = new TaskFragment();
-            fm.beginTransaction().add(taskFragment, TASK_FRAGMENT_TAG).commit();
-        }
-        if(taskFragment.isWorking()){
-            swipeRefreshLayout.setRefreshing(true);
-            taskFragment.continueTask();
-        }
     }
 
     private void requestInternetPermission() {
@@ -73,31 +59,14 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
     private void refreshItems(){
-        if(Utils.getInstance().isOnline()){
-            taskFragment.executeTask();
-        }
-        else{
+        if(!Utils.getInstance().isOnline()){
             Toast.makeText(getApplicationContext(), "No internet connection", Toast.LENGTH_SHORT).show();
             pictureAdapter.loadCashedData();
             swipeRefreshLayout.setRefreshing(false);
         }
-    }
-
-    @Override
-    public void onPreExecute() {
-        swipeRefreshLayout.setRefreshing(true);
-        pictureAdapter.clearData();
-    }
-
-    @Override
-    public void onProgress(ArrayList<Picture> pictures) {
-        pictureAdapter.addData(pictures);
-    }
-
-    @Override
-    public void onPostExecute() {
-        swipeRefreshLayout.setRefreshing(false);
-        taskFragment.finishTask();
+        else {
+            pictureAdapter.updateData();
+        }
     }
 
     @Override

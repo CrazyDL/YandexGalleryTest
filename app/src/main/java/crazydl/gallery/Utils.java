@@ -15,6 +15,9 @@ import com.yandex.disk.rest.RestClient;
 
 import java.io.File;
 
+import crazydl.gallery.data.db.AppDatabase;
+import crazydl.gallery.data.db.PictureDao;
+
 public class Utils extends Application {
     public static final int PERMISSION_REQUEST_INTERNET_CODE = 0;
     public static final int COLUMNS_COUNT = 2;
@@ -45,7 +48,7 @@ public class Utils extends Application {
         return restClient;
     }
 
-    public  AppDatabase getAppDatabase() {
+    public AppDatabase getAppDatabase() {
         return appDatabase;
     }
 
