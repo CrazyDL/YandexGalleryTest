@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import crazydl.gallery.Utils;
 import crazydl.gallery.data.ResourceToPictureConverter;
 import crazydl.gallery.data.YandexDiskApiMapper;
-import crazydl.gallery.domain.repository.model.Picture;
+import crazydl.gallery.domain.model.Picture;
 import crazydl.gallery.domain.repository.PictureRepository;
 import io.reactivex.Observable;
 
@@ -26,7 +26,9 @@ public class PictureRepositoryImpl implements PictureRepository {
             ArrayList<Resource> resources = mYandexDiskApiMapper.getPictureList(Utils.PUBLIC_FOLDER_URL);
             for (Resource resource : resources){
                 String filePath = mYandexDiskApiMapper.downloadPictureInCache(resource);
-                emitter.onNext(ResourceToPictureConverter.convertToPicture(resource, filePath));
+                if(filePath != null){
+                    emitter.onNext(ResourceToPictureConverter.convertToPicture(resource, filePath));
+                }
             }
             emitter.onComplete();
         });

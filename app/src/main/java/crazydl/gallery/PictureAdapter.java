@@ -18,8 +18,8 @@ import java.util.List;
 
 import crazydl.gallery.data.YandexDiskApiMapper;
 import crazydl.gallery.data.repository.PictureRepositoryImpl;
-import crazydl.gallery.domain.repository.interactor.PictureInteractor;
-import crazydl.gallery.domain.repository.model.Picture;
+import crazydl.gallery.domain.interactor.PictureInteractor;
+import crazydl.gallery.domain.model.Picture;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.schedulers.Schedulers;
@@ -176,7 +176,7 @@ public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ViewHold
                 .subscribe(this::addPicture);
     }
 
-    public void clearData() {
+    private void clearData() {
         int size = itemsPositions.size();
         items.clear();
         itemsPositions.clear();

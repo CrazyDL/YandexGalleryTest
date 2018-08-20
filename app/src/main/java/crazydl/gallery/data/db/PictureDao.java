@@ -9,7 +9,7 @@ import android.arch.persistence.room.Update;
 
 import java.util.List;
 
-import crazydl.gallery.domain.repository.model.Picture;
+import crazydl.gallery.domain.model.Picture;
 
 @Dao
 public interface PictureDao {

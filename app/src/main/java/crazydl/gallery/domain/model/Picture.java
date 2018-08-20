@@ -1,4 +1,4 @@
-package crazydl.gallery.domain.repository.model;
+package crazydl.gallery.domain.model;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;

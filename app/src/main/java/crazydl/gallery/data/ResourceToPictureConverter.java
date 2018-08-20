@@ -6,7 +6,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-import crazydl.gallery.domain.repository.model.Picture;
+import crazydl.gallery.domain.model.Picture;
 
 public class ResourceToPictureConverter {
     private static DateFormat df = new SimpleDateFormat("d MMM", Locale.US);

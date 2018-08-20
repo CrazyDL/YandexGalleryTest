@@ -1,7 +1,7 @@
-package crazydl.gallery.domain.repository.interactor;
+package crazydl.gallery.domain.interactor;
 
 import crazydl.gallery.domain.repository.PictureRepository;
-import crazydl.gallery.domain.repository.model.Picture;
+import crazydl.gallery.domain.model.Picture;
 import io.reactivex.Observable;
 
 
@@ -15,6 +15,5 @@ public class PictureInteractor implements Interactor {
 
     public Observable<Picture> getPictureList(){
         return pictureRepository.getPictureList();
-
     }
 }
